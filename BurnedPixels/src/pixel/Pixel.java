@@ -2,7 +2,7 @@ package pixel;
 
 import java.awt.*;
 
-public class Pixel
+public abstract class Pixel
 {
     public static final int PIXEL_SIZE = 25;
 
@@ -30,4 +30,6 @@ public class Pixel
         g.setColor(this.outlineColor);
         g.drawRect(tileX, tileY, PIXEL_SIZE, PIXEL_SIZE);
     }
+
+    public abstract Color pixelCondition();
 }
