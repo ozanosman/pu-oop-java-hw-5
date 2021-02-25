@@ -1,5 +1,6 @@
 package screen;
 
+import phone_list.PhoneList;
 import pixel.AlmostBurnedPixel;
 import pixel.BurnedPixel;
 import pixel.HealthyPixel;
@@ -8,6 +9,11 @@ import pixel.Pixel;
 import java.awt.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Клас съдържащ методи за изпълнението на логиката в приложението.
+ *
+ * @author Озан Осман
+ */
 public class Screen
 {
     public final int PIXEL_SIDE_COUNT = 64;
@@ -15,6 +21,9 @@ public class Screen
     private Pixel[][] pixelCollection = new Pixel[PIXEL_SIDE_COUNT][PIXEL_SIDE_COUNT];
 
     public Pixel selectedPixel;
+
+    private PhoneList workingPhone = new PhoneList();
+    private PhoneList brokenPhone  = new PhoneList();
 
     private final String CEREAL_NUMBER_CHARACTER_COLLECTION = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -28,7 +37,16 @@ public class Screen
 
     private int DEFECT_PIXEL_COUNT = PIXEL_COUNT - (BURNED_PIXEL_COUNT + ALMOST_BURNED_PIXEL_COUNT);
 
-    public String cerealNumberGenerator()
+    public int HEALTHY_PIXEL_CLICK_COUNTER = 0;
+    public int BURNED_PIXEL_CLICK_COUNTER = 0;
+    public int ALMOST_BURNED_PIXEL_CLICK_COUNTER = 0;
+
+    private String phoneSerialNumber = serialNumberGenerator();
+
+    /**
+     * Метод, който разбърква низ и създава един случаен друг низ дълък 10 символа.
+     */
+    public String serialNumberGenerator()
     {
         StringBuilder randomString = new StringBuilder(10);
 
@@ -42,6 +60,9 @@ public class Screen
         return randomString.toString();
     }
 
+    /**
+     * Метод задаващ координати за визуализиране на елементи "Healthy Pixel".
+     */
     public void healthyPixelCoordinates()
     {
         do
@@ -63,6 +84,9 @@ public class Screen
         while(HEALTHY_PIXEL_COUNT != 0);
     }
 
+    /**
+     * Метод задаващ координати за визуализиране на елементи "Burned Pixel".
+     */
     public void burnedPixelCoordinates()
     {
         do
@@ -84,6 +108,9 @@ public class Screen
         while(BURNED_PIXEL_COUNT != 0);
     }
 
+    /**
+     * Метод задаващ координати за визуализиране на елементи "Almost Burned Pixel".
+     */
     public void almostBurnedCoordinates()
     {
         do
@@ -105,6 +132,13 @@ public class Screen
         while(ALMOST_BURNED_PIXEL_COUNT != 0);
     }
 
+    /**
+     * Метод съдържащ инстанция на клас за визуализиране на елементи "Healthy Pixel", "Burned Pixel" и "Almost Burned Pixel".
+     *
+     * @param g     обект на супер класа за всички графични контексти
+     * @param row   ред на елемента
+     * @param col   колона на елемента
+     */
     public void renderPixel(Graphics g, int row, int col)
     {
         if (this.hasScreenPixel(row, col))
@@ -114,26 +148,68 @@ public class Screen
         }
     }
 
-    public int getPixelCoordinates(int coordinates)
+    /**
+     * Метод, който връща координати на дисплея в единични числа.
+     *
+     * @param coordinates   координати
+     */
+    public int getScreenCoordinates(int coordinates)
     {
         return coordinates / Pixel.PIXEL_SIZE;
     }
 
+    /**
+     * Метод, който връща елемент от обекта за елементи "Healthy Pixel", "Burned Pixel" и "Almost Burned Pixel".
+     *
+     * @param row   ред на елемента
+     * @param col   колона на елемента
+     */
     public Pixel getScreenPixel(int row, int col)
     {
         return this.pixelCollection[row][col];
     }
 
+    /**
+     * Метод, който проверява и връща елемент от обекта за елементи "Healthy Pixel", "Burned Pixel" и "Almost Burned Pixel", ако те съществуват.
+     *
+     * @param row   ред на елемента
+     * @param col   колона на елемента
+     */
     public boolean hasScreenPixel(int row, int col)
     {
         return this.getScreenPixel(row, col) != null;
     }
 
+    /**
+     * Метод, който избира да визуализира дали екрана на телефон има или няма дефект.
+     */
     public String getScreenDefect()
     {
-        return String.format("Този телефон %s дефектен екран!", checkScreenDefect() ? "има" : "няма");
+        return String.format("Няма нужда да продължавате да проверявате, защото този телефон %s дефектен екран!", checkScreenDefect() ? "има" : "няма");
     }
 
+    /**
+     * Метод, който визуализира сериийния номер на работещи и дефектни телефони.
+     */
+    public void renderPhoneList()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            if (this.workingPhone.get(i) != null)
+            {
+                System.out.println("Serial No: " + this.workingPhone.get(i) + "\nНе са открити дефекти!");
+            }
+
+            if (this.brokenPhone.get(i) != null)
+            {
+                System.out.println("Serial No: " + this.brokenPhone.get(i) + "\nОткрити са дефекти!");
+            }
+        }
+    }
+
+    /**
+     * Метод, който връща 3 различни цвята случайно.
+     */
     private Color getPixelColor()
     {
         int chance = (int) (Math.random() * 3);
@@ -151,13 +227,26 @@ public class Screen
         return Color.BLUE;
     }
 
+    /**
+     * Метод, който избира и връща координати на елементи "Healthy Pixel", "Burned Pixel" и "Almost Burned Pixel".
+     */
     private int getPixelCoordinates()
     {
         return (int) (Math.random() * 64);
     }
 
+    /**
+     * Метод, който проверява дали екрана има или няма дефект.
+     */
     private boolean checkScreenDefect()
     {
-        return DEFECT_PIXEL_COUNT > 2048;
+        if (DEFECT_PIXEL_COUNT > 2048)
+        {
+            brokenPhone.add(phoneSerialNumber);
+            return true;
+        }
+
+        workingPhone.add(phoneSerialNumber);
+        return false;
     }
 }
